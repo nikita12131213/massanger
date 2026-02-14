@@ -17,3 +17,5 @@ export type Conversation = {
   last_message?: Message | null;
   unread_count: number;
 };
+
+export type PresenceMap = Record<number, boolean>;

@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/authStore';
 export function LoginPage() {
   const navigate = useNavigate();
   const setAccessToken = useAuthStore((s) => s.setAccessToken);
+  const bootstrapMe = useAuthStore((s) => s.bootstrapMe);
   return (
     <div className="center">
       <AuthForm
@@ -13,6 +14,7 @@ export function LoginPage() {
         onSubmit={async (d) => {
           const { data } = await api.post('/api/auth/login', d);
           setAccessToken(data.access_token);
+          await bootstrapMe();
           navigate('/app');
         }}
       />

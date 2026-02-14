@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { WSClient } from '../api/wsClient';
 import { useAuthStore } from '../stores/authStore';
@@ -9,9 +9,13 @@ const ws = new WSClient();
 
 export function ChatWindow() {
   const meToken = useAuthStore((s) => s.accessToken);
-  const { activeConversationId, messages, setMessages, addMessage, ackMessage, typingUsers, setTyping } = useChatStore();
+  const me = useAuthStore((s) => s.me);
+  const { activeConversationId, messages, setMessages, addMessage, ackMessage, typingUsers, setTyping, updateMessage, removeMessage } =
+    useChatStore();
   const [text, setText] = useState('');
   const [before, setBefore] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<Message[]>([]);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const currentMessages = useMemo(() => messages[activeConversationId ?? -1] ?? [], [messages, activeConversationId]);
@@ -37,6 +41,7 @@ export function ChatWindow() {
     api.get('/api/messages', { params: { conversation_id: activeConversationId, limit: 20 } }).then((r) => {
       setMessages(activeConversationId, r.data.reverse());
       if (r.data.length) setBefore(r.data[r.data.length - 1].id);
+      api.post(`/api/conversations/${activeConversationId}/read`).catch(() => undefined);
     });
   }, [activeConversationId, setMessages]);
 
@@ -64,6 +69,34 @@ export function ChatWindow() {
     (window as any).__typingTimer = window.setTimeout(() => ws.send('typing:stop', { conversation_id: activeConversationId }), 800);
   };
 
+  const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  };
+
+  const onSearch = async () => {
+    if (!activeConversationId || !search.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    const { data } = await api.get('/api/messages/search', { params: { conversation_id: activeConversationId, q: search } });
+    setSearchResults(data);
+  };
+
+  const onEdit = async (messageId: number, prevText: string) => {
+    const next = window.prompt('Edit message', prevText);
+    if (!next || next.trim() === prevText) return;
+    await api.patch(`/api/messages/${messageId}`, { text: next.trim() });
+    if (activeConversationId) updateMessage(activeConversationId, messageId, next.trim());
+  };
+
+  const onDelete = async (messageId: number) => {
+    await api.delete(`/api/messages/${messageId}`);
+    if (activeConversationId) removeMessage(activeConversationId, messageId);
+  };
+
   const upload = async () => {
     const file = fileRef.current?.files?.[0];
     if (!file) return;
@@ -78,17 +111,37 @@ export function ChatWindow() {
   return (
     <main className="chat">
       <button onClick={loadMore}>Загрузить ещё</button>
+      <div className="search-row">
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="search in chat" />
+        <button onClick={onSearch}>Search</button>
+      </div>
+      {searchResults.length > 0 && (
+        <div className="search-results">
+          {searchResults.slice(0, 5).map((m) => (
+            <div key={`search-${m.id}`} className="list-item">
+              {m.text}
+            </div>
+          ))}
+        </div>
+      )}
       <div className="messages">
         {currentMessages.map((m) => (
           <div key={`${m.id}-${m.temp_id ?? ''}`} className={`msg ${m.pending ? 'pending' : ''}`}>
             <div>{m.text}</div>
+            {m.text.startsWith('/media/') && <img src={`${import.meta.env.VITE_API_URL}${m.text}`} style={{ maxWidth: 220, marginTop: 8 }} />}
+            {m.sender_id === me?.id && !m.pending && (
+              <div style={{ marginTop: 6, display: 'flex', gap: 6 }}>
+                <button onClick={() => onEdit(m.id, m.text)}>edit</button>
+                <button onClick={() => onDelete(m.id)}>delete</button>
+              </div>
+            )}
             {m.pending && <small>отправляется...</small>}
           </div>
         ))}
       </div>
-      {typingUsers[activeConversationId]?.length ? <div>typing...</div> : null}
+      {(typingUsers[activeConversationId] ?? []).filter((id) => id !== me?.id).length ? <div>typing...</div> : null}
       <div className="composer">
-        <textarea value={text} onChange={(e) => onTyping(e.target.value)} placeholder="message" />
+        <textarea value={text} onChange={(e) => onTyping(e.target.value)} onKeyDown={onKeyDown} placeholder="message" />
         <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" />
         <button onClick={upload}>Upload</button>
         <button onClick={send}>Send</button>

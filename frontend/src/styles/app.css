@@ -14,4 +14,5 @@ input, textarea, button { background: #222; color: #eee; border: 1px solid #3a3a
 .list-item { background: #1a1a1a; padding: 10px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; }
 .badge { background: #4b7cff; border-radius: 20px; padding: 2px 8px; float: right; }
 .search-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+.search-results { display: grid; gap: 6px; max-height: 160px; overflow: auto; }
 @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .sidebar { max-height: 35vh; } }
