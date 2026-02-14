@@ -12,7 +12,7 @@ from app.services.conversation_service import (
     get_peer,
     get_unread_count,
     list_conversations,
-    mark_conversation_read,
+
 )
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
@@ -71,10 +71,3 @@ async def get_conversation(conversation_id: int, db: AsyncSession = Depends(get_
         ],
     }
 
-
-@router.post("/{conversation_id}/read")
-async def read_conversation(conversation_id: int, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    if not await check_participant(db, user.id, conversation_id):
-        raise HTTPException(status_code=403, detail="No access")
-    await mark_conversation_read(db, conversation_id, user.id)
-    return {"ok": True}

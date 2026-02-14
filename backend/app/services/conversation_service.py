@@ -77,15 +77,3 @@ async def get_unread_count(db: AsyncSession, conversation_id: int, user_id: int)
         cond.append(Message.id > p.last_read_message_id)
     return (await db.scalar(select(func.count(Message.id)).where(and_(*cond)))) or 0
 
-
-async def mark_conversation_read(db: AsyncSession, conversation_id: int, user_id: int) -> None:
-    participant = await db.scalar(
-        select(Participant).where(Participant.conversation_id == conversation_id, Participant.user_id == user_id)
-    )
-    if not participant:
-        return
-    last_message_id = await db.scalar(
-        select(Message.id).where(Message.conversation_id == conversation_id).order_by(Message.id.desc()).limit(1)
-    )
-    participant.last_read_message_id = last_message_id
-    await db.commit()
