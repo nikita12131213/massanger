@@ -76,3 +76,4 @@ async def get_unread_count(db: AsyncSession, conversation_id: int, user_id: int)
     if p.last_read_message_id:
         cond.append(Message.id > p.last_read_message_id)
     return (await db.scalar(select(func.count(Message.id)).where(and_(*cond)))) or 0
+

@@ -12,6 +12,7 @@ from app.services.conversation_service import (
     get_peer,
     get_unread_count,
     list_conversations,
+
 )
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
@@ -69,3 +70,4 @@ async def get_conversation(conversation_id: int, db: AsyncSession = Depends(get_
             {"id": peer.id, "username": peer.username} if peer else None,
         ],
     }
+

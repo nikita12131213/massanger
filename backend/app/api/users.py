@@ -7,6 +7,7 @@ from app.db.session import get_db
 from app.models import User
 from app.schemas.common import UserOut
 
+
 router = APIRouter(prefix="/users", tags=["users"])
 
 
@@ -20,3 +21,4 @@ async def search_users(
         await db.scalars(select(User).where(User.username.ilike(f"%{q.lower()}%"), User.id != user.id).limit(20))
     ).all()
     return [UserOut(id=x.id, username=x.username) for x in rows]
+

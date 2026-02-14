@@ -10,8 +10,6 @@ interface ChatState {
   setActiveConversation: (id: number) => void;
   setMessages: (conversationId: number, items: Message[]) => void;
   addMessage: (conversationId: number, item: Message) => void;
-  ackMessage: (conversationId: number, tempId: string, messageId: number, createdAt: string) => void;
-  setTyping: (conversationId: number, userId: number, on: boolean) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -35,5 +33,4 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const arr = new Set(s.typingUsers[conversationId] ?? []);
       on ? arr.add(userId) : arr.delete(userId);
       return { typingUsers: { ...s.typingUsers, [conversationId]: [...arr] } };
-    })
 }));

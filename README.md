@@ -35,6 +35,7 @@ Open `http://localhost:5173`.
 docker compose up --build
 ```
 
+
 ## Seed users
 - alice / password
 - bob / password
@@ -55,9 +56,7 @@ curl -X GET 'http://localhost:8000/api/messages?conversation_id=1&limit=20' -H '
 1. Register + login.
 2. Find user and create dialog.
 3. Open two tabs, send messages and verify realtime updates + typing.
-4. Upload png/jpg/webp, send URL in message.
-5. Edit/delete own message.
-6. Search messages in dialog.
+
 
 ## Troubleshooting
 - `401 on /refresh`: check cookie domain/samesite values in backend `.env`.

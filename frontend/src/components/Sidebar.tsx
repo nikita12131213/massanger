@@ -4,13 +4,14 @@ import { useChatStore } from '../stores/chatStore';
 import type { User } from '../types';
 
 export function Sidebar() {
-  const { conversations, setConversations, setActiveConversation } = useChatStore();
+
   const [q, setQ] = useState('');
   const [results, setResults] = useState<User[]>([]);
 
   useEffect(() => {
     api.get('/api/conversations').then((r) => setConversations(r.data));
   }, [setConversations]);
+
 
   const search = async () => {
     if (!q) return;
@@ -39,7 +40,6 @@ export function Sidebar() {
       <hr />
       {conversations.map((c) => (
         <div key={c.id} className="list-item" onClick={() => setActiveConversation(c.id)}>
-          <strong>{c.peer?.username ?? 'Unknown'}</strong>
           <div>{c.last_message?.text?.slice(0, 24) ?? 'No messages yet'}</div>
           {c.unread_count > 0 && <span className="badge">{c.unread_count}</span>}
         </div>

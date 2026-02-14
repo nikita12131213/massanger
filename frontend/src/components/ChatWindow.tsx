@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+
 import { api } from '../api/client';
 import { WSClient } from '../api/wsClient';
 import { useAuthStore } from '../stores/authStore';
@@ -9,9 +9,7 @@ const ws = new WSClient();
 
 export function ChatWindow() {
   const meToken = useAuthStore((s) => s.accessToken);
-  const { activeConversationId, messages, setMessages, addMessage, ackMessage, typingUsers, setTyping } = useChatStore();
-  const [text, setText] = useState('');
-  const [before, setBefore] = useState<number | null>(null);
+
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const currentMessages = useMemo(() => messages[activeConversationId ?? -1] ?? [], [messages, activeConversationId]);
@@ -64,6 +62,7 @@ export function ChatWindow() {
     (window as any).__typingTimer = window.setTimeout(() => ws.send('typing:stop', { conversation_id: activeConversationId }), 800);
   };
 
+
   const upload = async () => {
     const file = fileRef.current?.files?.[0];
     if (!file) return;
@@ -78,17 +77,17 @@ export function ChatWindow() {
   return (
     <main className="chat">
       <button onClick={loadMore}>Загрузить ещё</button>
+
       <div className="messages">
         {currentMessages.map((m) => (
           <div key={`${m.id}-${m.temp_id ?? ''}`} className={`msg ${m.pending ? 'pending' : ''}`}>
             <div>{m.text}</div>
+
             {m.pending && <small>отправляется...</small>}
           </div>
         ))}
       </div>
-      {typingUsers[activeConversationId]?.length ? <div>typing...</div> : null}
-      <div className="composer">
-        <textarea value={text} onChange={(e) => onTyping(e.target.value)} placeholder="message" />
+
         <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" />
         <button onClick={upload}>Upload</button>
         <button onClick={send}>Send</button>
