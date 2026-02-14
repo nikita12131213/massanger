@@ -76,6 +76,32 @@ curl -X GET 'http://localhost:8000/api/messages?conversation_id=1&limit=20' -H '
 - GitHub Pages `404` on refresh route: убедитесь, что workflow создал `dist/404.html`.
 - GitHub Pages blank app/assets 404: проверьте `VITE_BASE_PATH` (должен быть `/repo-name/` для project pages).
 
+### Resolve merge conflicts quickly (CLI)
+Если PR показывает конфликт в файлах фронта/README между `main` и `work`, проще принять актуальную версию из `work` и затем прогнать проверки:
+
+```bash
+git fetch origin
+git checkout work
+git merge origin/main
+
+# принять версию из текущей ветки (work) для конфликтующих файлов
+git checkout --ours README.md backend/app/api/conversations.py backend/app/api/users.py \
+  backend/app/services/conversation_service.py frontend/.env.example frontend/package.json \
+  frontend/src/components/ChatWindow.tsx frontend/src/components/Sidebar.tsx frontend/src/main.tsx \
+  frontend/src/pages/AppPage.tsx frontend/src/pages/LoginPage.tsx frontend/src/stores/authStore.ts \
+  frontend/src/stores/chatStore.ts frontend/src/styles/app.css frontend/src/types/index.ts frontend/vite.config.ts
+
+git add README.md backend/app/api/conversations.py backend/app/api/users.py \
+  backend/app/services/conversation_service.py frontend/.env.example frontend/package.json \
+  frontend/src/components/ChatWindow.tsx frontend/src/components/Sidebar.tsx frontend/src/main.tsx \
+  frontend/src/pages/AppPage.tsx frontend/src/pages/LoginPage.tsx frontend/src/stores/authStore.ts \
+  frontend/src/stores/chatStore.ts frontend/src/styles/app.css frontend/src/types/index.ts frontend/vite.config.ts
+
+git commit -m "chore: resolve merge conflicts with main"
+```
+
+После этого пушьте ветку `work` повторно.
+
 ## Roadmap
 - Group chats, read receipts, pinned dialogs.
 - Postgres FTS and message indexes.
